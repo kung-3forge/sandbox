@@ -1,0 +1,50 @@
+/* DO NOT MODIFY THIS FILE WHILE AMI IS RUNNING, CONTENTS ARE MODIFIED BY AMI  */
+
+/*CUSTOM METHODS*/
+
+
+
+/*TABLES AND INDEXES*/
+
+CREATE PUBLIC TABLE A_Transactions_T(symbol String,price Double,volume Integer,transTime Long,type String,
+                                     flag String,I String,C Long) USE RefreshPeriodMs="100" OnUndefColumn="ADD" InitialCapacity="1000";
+CREATE INDEX A_Transactions_T_symbol ON A_Transactions_T(symbol HASH) USE Constraint="NONE";
+
+
+CREATE PUBLIC TABLE A_Transactions_T_1000(symbol String,price Double,volume Integer,transTime Long,type String,
+                                          flag String,I String,C Long) USE RefreshPeriodMs="100" OnUndefColumn="ADD" InitialCapacity="1000";
+CREATE INDEX A_Transactions_T_1000_symbol ON A_Transactions_T_1000(symbol HASH) USE Constraint="NONE";
+
+
+CREATE PUBLIC TABLE A_Transactions_T_5000(symbol String,price Double,volume Integer,transTime Long,type String,
+                                          flag String,I String,C Long) USE RefreshPeriodMs="100" OnUndefColumn="ADD" InitialCapacity="1000";
+CREATE INDEX A_Transactions_T_5000_symbol ON A_Transactions_T_5000(symbol HASH) USE Constraint="NONE";
+
+
+CREATE PUBLIC TABLE A_VwapTable_grpBy(symbol String,vwap Double,totalVolume Long,totalTradeValue Double,numberOfTrade Long) USE RefreshPeriodMs="100" OnUndefColumn="REJECT" InitialCapacity="100";
+
+
+CREATE PUBLIC TABLE A_VwapTable_grpBy_1000(symbol String,vwap Double,totalVolume Long,totalTradeValue Double,numberOfTrade Long) USE RefreshPeriodMs="100" OnUndefColumn="REJECT" InitialCapacity="100";
+
+
+CREATE PUBLIC TABLE A_VwapTable_grpBy_5000(symbol String,vwap Double,totalVolume Long,totalTradeValue Double,numberOfTrade Long) USE RefreshPeriodMs="100" OnUndefColumn="REJECT" InitialCapacity="100";
+
+
+
+/*TIMERS*/
+
+/*PROCEDURES*/
+
+/*MULTI-TABLE TRIGGERS*/
+CREATE TRIGGER A_TransactionsProjection_1000 OFTYPE PROJECTION ON A_Transactions_T,A_Transactions_T_1000 PRIORITY 0 USE selects="symbol=symbol,price=price,volume=volume,transTime=transTime,type=type,flag=flag,I=I" wheres="volume>=1000";
+
+CREATE TRIGGER A_TransactionsProjection_5000 OFTYPE PROJECTION ON A_Transactions_T,A_Transactions_T_5000 PRIORITY 0 USE selects="symbol=symbol,price=price,volume=volume,transTime=transTime,type=type,flag=flag,I=I" wheres="volume>=5000";
+
+CREATE TRIGGER A_VwapAggregator OFTYPE AGGREGATE ON A_Transactions_T,A_VwapTable_grpBy PRIORITY 0 USE selects="vwap=sum(price*volume)/sum(volume),totalTradeValue=sum(price * volume), totalVolume=sum(volume),numberOfTrade=count(*)" groupBys="symbol=symbol";
+
+CREATE TRIGGER A_VwapAggregator_1000 OFTYPE AGGREGATE ON A_Transactions_T_1000,A_VwapTable_grpBy_1000 PRIORITY 0 USE selects="vwap=sum(price*volume)/sum(volume),totalTradeValue=sum(price * volume), totalVolume=sum(volume),numberOfTrade=count(*)" groupBys="symbol=symbol";
+
+CREATE TRIGGER A_VwapAggregator_5000 OFTYPE AGGREGATE ON A_Transactions_T_5000,A_VwapTable_grpBy_5000 PRIORITY 0 USE selects="vwap=sum(price*volume)/sum(volume),totalTradeValue=sum(price * volume), totalVolume=sum(volume),numberOfTrade=count(*)" groupBys="symbol=symbol";
+
+
+/*DBOS*/
